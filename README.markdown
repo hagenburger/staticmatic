@@ -42,6 +42,15 @@ edited the pages and stylesheets, you can generate the static site:
     
 All of the pages are parsed and wrapped up in application.haml and put into the site directory.
 
+## Additional mime types
+
+You can add additional file types (other than HTML or CSS) in your `src/configuration.rb`:
+
+    configuration.mime_types[:rss] = 'application/rss+xml'
+    configuration.mime_types[:xml] = 'application/xml'
+    
+Files named `filename.rss.haml` will be previewed with the right mime type and build with the right extention as `filename.rss`.
+
 ## Templates
 
 StaticMatic adds a few helpers to the core Haml helpers:
