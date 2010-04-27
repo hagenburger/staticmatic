@@ -1,24 +1,4 @@
-module StaticMatic
-  # Directories generated for a new site setup
-  BASE_DIRS = %w{
-    site/
-    site/stylesheets
-    site/images
-    site/javascripts
-    src/
-    src/pages/
-    src/layouts
-    src/stylesheets
-    src/helpers
-  }
-
-  # Templates for setup and their location
-  TEMPLATES = {
-    'application.haml' => 'layouts',
-    'application.sass' => 'stylesheets',
-    'index.haml' => 'pages'
-  }
-  
+module StaticMatic  
   class Base
     
     include StaticMatic::RenderMixin
@@ -39,15 +19,21 @@ module StaticMatic
       @configuration = configuration
       @current_page = nil
       @current_file_stack = []
-      @base_dir = File.expand_path(base_dir)
-      @src_dir = "#{@base_dir}/src"
-      @site_dir = "#{@base_dir}/site"
-      @templates_dir = File.dirname(__FILE__) + '/templates/default/'
+      @base_dir = base_dir
+      @src_dir = File.join(@base_dir, "src")
+      @site_dir = File.join(@base_dir, "site")
       
-      @layout = "application"
+      if File.exists?(File.join(@src_dir, "layouts", "application.haml"))
+        puts "DEPRECATION: layouts/application.haml will be renamed to layouts/default.haml in the 0.12.0"
+        @layout = "application"
+      else
+        @layout = "default"
+      end
+      
       @scope = Object.new
       @scope.instance_variable_set("@staticmatic", self)
       
+      configure_compass
       load_helpers
     end
     
@@ -56,6 +42,8 @@ module StaticMatic
     end
   
     def run(command)
+      puts "Site root is: #{@base_dir}"
+      
       if %w(build setup preview).include?(command)
         send(command)
       else
@@ -77,13 +65,21 @@ module StaticMatic
     end
     
     def full_layout_path(name)
-      "#{@src_dir}/layouts/#{name}.haml"
+      File.join(@src_dir, "layouts", "#{name}.haml")
     end
     
-    class << self
-      def base_dirs
-        StaticMatic::BASE_DIRS
+    def configure_compass
+      Compass.configuration do |config|
+        config.output_style = :expanded
+        config.project_path = @base_dir 
+        config.sass_dir = File.join(@base_dir, "src", "stylesheets")
+        config.css_dir = File.join(@base_dir, "site", "stylesheets")
+        config.images_dir = File.join(@base_dir, "site", "images")
+        config.http_path = "/"
+        config.http_images_path = "/images"
       end
+      
+      configuration.sass_options.merge!(Compass.sass_engine_options)
     end
   end
 end

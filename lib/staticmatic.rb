@@ -5,9 +5,10 @@ require 'sass/plugin'
 require 'rack'
 require 'rack/handler/mongrel'
 require 'fileutils'
+require 'compass'
 
 module StaticMatic
-  VERSION = '0.10.2'
+  VERSION = "0.11.0"
 end
 
 ["render", "build", "setup", "server", "helpers", "rescue"].each do |mixin|
