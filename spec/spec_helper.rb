@@ -11,4 +11,9 @@ end
 
 def setup_staticmatic
   @staticmatic = StaticMatic::Base.new(TEST_SITE_PATH)
+  @server = nil
+end
+
+def server
+  @server ||= StaticMatic::Server.new(@staticmatic)
 end

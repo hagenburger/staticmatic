@@ -10,6 +10,11 @@ module StaticMatic
       path_info = env["PATH_INFO"]
 
       file_dir, file_name, file_ext = expand_path(path_info)
+      mime_type = @staticmatic.configuration.mime_types[file_ext.to_sym]
+      
+      unless %w(html css).include?(file_ext)
+        file_name += '.' + file_ext
+      end
 
       # remove stylesheets/ directory if applicable
       file_dir.gsub!(/^\/stylesheets\/?/, "")
@@ -17,14 +22,14 @@ module StaticMatic
       file_dir = CGI::unescape(file_dir)
       file_name = CGI::unescape(file_name)
 
-      unless file_ext && ["html", "css"].include?(file_ext) &&
+      unless file_ext && mime_type &&
           @staticmatic.template_exists?(file_name, file_dir) &&
           File.basename(file_name) !~ /^\_/
         return @files.call(env)
       end
 
       res = Rack::Response.new
-      res.header["Content-Type"] = "text/#{file_ext}"
+      res.header["Content-Type"] = mime_type
 
       begin
         if file_ext == "css"

@@ -30,7 +30,13 @@ module StaticMatic::BuildMixin
   end
 
   def save_page(filename, content)
-    generate_site_file(filename, 'html', content)
+    if filename =~ /\.(\w+)$/ and configuration.mime_types[$1.to_sym]
+      extention = $1
+      filename.sub! /\.#{extention}$/, ''
+    else
+      extention = 'html'
+    end
+    generate_site_file(filename, extention, content)
   end
 
   def save_stylesheet(filename, content)

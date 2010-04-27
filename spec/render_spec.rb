@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + "/spec_helper"
 
+require 'pp'
+
 describe "StaticMatic::Render" do
   before do
     setup_staticmatic
@@ -18,6 +20,13 @@ describe "StaticMatic::Render" do
   
   it "generate css" do
     content = @staticmatic.generate_css("application")
+  end
+  
+  it "generate other file types" do
+    @staticmatic.configuration.mime_types[:rss] = 'application/rss+xml'
+    response = server.call({ 'PATH_INFO' => 'feed.rss' })
+    response[1]['Content-Type'].should == 'application/rss+xml'
+    response[2].body.first.should include('RSS example')
   end
   
   it "find source filename from path" do
