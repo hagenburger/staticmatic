@@ -24,17 +24,40 @@ module StaticMatic
       @site_dir = File.join(@base_dir, "site")
       
       if File.exists?(File.join(@src_dir, "layouts", "application.haml"))
-        puts "DEPRECATION: layouts/application.haml will be renamed to layouts/default.haml in the 0.12.0"
-        @layout = "application"
+        puts "DEPRECATION: layouts/application.haml will be renamed to layouts/default.haml in 0.12.0"
+        @default_layout = "application"
       else
-        @layout = "default"
+        @default_layout = "default"
       end
       
       @scope = Object.new
       @scope.instance_variable_set("@staticmatic", self)
       
+      load_configuration      
       configure_compass
+
       load_helpers
+    end
+    
+    def load_configuration
+      configuration = StaticMatic::Configuration.new
+      config_file = File.join(@base_dir, "config", "site.rb")
+
+      if !File.exists?(config_file)
+        config_file = File.join(@base_dir, "src", "configuration.rb")
+
+        if File.exists?(config_file)
+          puts "DEPRECATION: #{@base_dir}/src/configuration.rb will be moved to #{@base_dir}/config/site.rb in 0.12.0"
+        end
+      end
+      
+      if File.exists?(config_file)
+        config = File.read(config_file)
+        eval(config)
+      end
+
+      # Compass.sass_engine_options.merge!(configuration.sass_options)
+      @configuration = configuration
     end
     
     def base_dir
@@ -53,7 +76,7 @@ module StaticMatic
       
     # TODO: DRY this _exists? section up
     def template_exists?(name, dir = '')
-      File.exists?(File.join(@src_dir, 'pages', dir, "#{name}.haml")) || File.exists?(File.join(@src_dir, 'stylesheets', "#{name}.sass"))
+      File.exists?(File.join(@src_dir, 'pages', dir, "#{name}.haml")) || File.exists?(File.join(@src_dir, 'stylesheets', "#{name}.sass")) || File.exists?(File.join(@src_dir, 'stylesheets', "#{name}.scss"))
     end
     
     def layout_exists?(name)
@@ -69,17 +92,15 @@ module StaticMatic
     end
     
     def configure_compass
-      Compass.configuration do |config|
-        config.output_style = :expanded
-        config.project_path = @base_dir 
-        config.sass_dir = File.join(@base_dir, "src", "stylesheets")
-        config.css_dir = File.join(@base_dir, "site", "stylesheets")
-        config.images_dir = File.join(@base_dir, "site", "images")
-        config.http_path = "/"
-        config.http_images_path = "/images"
-      end
+      Compass.configuration.project_path = @base_dir 
+
+      compass_config_path = File.join(@base_dir, "config", "compass.rb")
       
-      configuration.sass_options.merge!(Compass.sass_engine_options)
+      if File.exists?(compass_config_path)
+        Compass.add_configuration(compass_config_path)  
+      end
+
+      configuration.sass_options.merge!(Compass.configuration.to_sass_engine_options)
     end
   end
 end

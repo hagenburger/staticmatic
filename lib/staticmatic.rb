@@ -1,11 +1,13 @@
 require 'rubygems'
+require 'compass'
 require 'haml'
 require 'sass'
 require 'sass/plugin'
 require 'rack'
-require 'rack/handler/mongrel'
+require 'rack/handler/webrick'
+require 'cgi'
 require 'fileutils'
-require 'compass'
+
 
 module StaticMatic
   VERSION = "0.11.0"
@@ -15,7 +17,7 @@ end
   require File.join(File.dirname(__FILE__), "staticmatic", "mixins", mixin)
 end
 
-["base", "configuration", "error", "server", "helpers", "template_error"].each do |lib|
+["base", "configuration", "error", "server", "helpers", "template_error", "compass"].each do |lib|
   require File.join(File.dirname(__FILE__), "staticmatic", lib)
 end
 
